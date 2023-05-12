@@ -1,7 +1,23 @@
+# FastAPIとその依存ライブラリ
 fastapi
 uvicorn
-pydantic
+
+# データベースとのやり取りを行うためのライブラリ
 sqlalchemy
+pydantic
+
+# JWTを扱うためのライブラリ
+python-jose[cryptography]
+
+# パスワードのハッシュ化を行うためのライブラリ
+passlib[bcrypt]
+
+# ファイルアップロードを行うためのライブラリ
+python-multipart
+
+# PostgreSQLとの接続を行うためのライブラリ
+psycopg2-binary
+
+# テストを行うためのライブラリ
 async-exit-stack
 async-generator
-psycopg2-binary
