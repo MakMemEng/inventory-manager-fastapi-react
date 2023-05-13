@@ -1,20 +1,20 @@
 # ベースとなるイメージの指定
-FROM python:3.10
+FROM node:16
 
 # ワーキングディレクトリの指定
 WORKDIR /app
 
 # 依存関係ファイルをコピー
-COPY requirements.txt .
+COPY package*.json ./
 
 # 依存関係のインストール
-RUN pip install --no-cache-dir -r requirements.txt
+RUN npm install
 
 # アプリケーションのコピー
 COPY . .
 
 # ポートのエクスポート
-EXPOSE 8000
+EXPOSE 3000
 
 # 実行コマンド
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["npm", "start"]
