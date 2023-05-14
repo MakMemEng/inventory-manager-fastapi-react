@@ -1,8 +1,22 @@
+from datetime import datetime, timedelta
+from typing import Optional
+
+from jose import jwt
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 import models
 import schemas
 
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+""" 各関数は、SQLAlchemyのSessionオブジェクトと、操作を行う対象のスキーマを引数にとる。
+    また、**.dict()を使用して、スキーマからモデルを作成する。
+    そして、作成したモデルをデータベースに追加し、コミットを行う。
+    最後に、データベースから新しいエントリを取得して返す。
+"""
 """ Userに関する操作 """
 def get_user(db: Session, user_id: int):
     return get_object_or_none(db, models.User, user_id)
@@ -112,3 +126,29 @@ def update_object(db: Session, db_object, schema):
     db.commit()
     db.refresh(db_object)
     return db_object
+
+
+""" JWTに関する操作 """
+def authenticate_user(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, "SECRET_KEY", algorithm="HS256")
+    return encoded_jwt
