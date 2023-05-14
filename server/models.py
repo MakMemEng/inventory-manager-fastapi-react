@@ -2,6 +2,13 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from database import Base
 
+""" 各クラスはテーブルのスキーマを定義し、そのフィールドはテーブルの列を表す。
+    ForeignKeyは他のテーブルへのリンクを表す。
+    relationshipはそのリンクを使用して他のテーブルとの関係を表す。
+    
+    モデル定義は、データベーススキーマを定義し、
+    SQLAlchemy ORMを通じてデータベース操作を可能にする。
+"""
 class User(Base):
     __tablename__ = "users"
 
