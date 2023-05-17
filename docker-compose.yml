@@ -1,25 +1,30 @@
 version: '3'
 services:
   fastapi:
-    build: ./server
+    build:
+      context: backend
     volumes:
-      - ./server:/app
+      - ./backend/app:/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     depends_on:
       - db
   db:
     image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: pcb_inventory
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
   react:
-    build: ./client
+    build:
+      context: frontend
     volumes:
-      - ./client:/app
+      - ./frontend:/app
     ports:
       - "3000:3000"
 volumes:
