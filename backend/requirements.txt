@@ -21,3 +21,13 @@ psycopg2-binary
 # テストを行うためのライブラリ
 async-exit-stack
 async-generator
+
+fastapi_csrf_protect==0.2.1
+
+# FastAPIとMongoDBを連携させるためのライブラリ
+# motor==2.5.1
+PyJWT==2.3.0
+passlib[bcrypt]==1.7.4
+python-decouple==3.4
+dnspython
+gunicorn==20.1.0
