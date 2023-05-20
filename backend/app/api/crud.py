@@ -32,8 +32,17 @@ def get_materials(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Material).offset(skip).limit(limit).all()
 
 
-def create_material(db: Session, item: schemas.MaterialCreate):
-    db_material = models.materials.Material(**item.dict())
+def create_material(db: Session, material: schemas.MaterialCreate):
+    db_material = models.Material(
+        name=material.name,
+        category=material.category,
+        thickness=material.thickness,
+        copper_thickness=material.copper_thickness,
+        size_x=material.size_x,
+        size_y=material.size_y,
+        maker=material.maker,
+        material_type=material.material_type
+    )
     db.add(db_material)
     db.commit()
     db.refresh(db_material)

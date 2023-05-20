@@ -23,14 +23,14 @@ class Inventory(InventoryBase):
         orm_mode = True
 
 class MaterialBase(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
-    thickness: Optional[float] = None
-    copper_thickness: Optional[int] = None
-    size_x: Optional[int] = None
-    size_y: Optional[int] = None
-    maker: Optional[str] = None
-    material_type: Optional[str] = None
+    name: str
+    category: str
+    thickness: float
+    copper_thickness: int
+    size_x: int
+    size_y: int
+    maker: str
+    material_type: str
 
 class MaterialCreate(MaterialBase):
     pass
