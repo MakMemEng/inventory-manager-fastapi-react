@@ -2,7 +2,7 @@ import React, { useState, useEffect, ChangeEvent } from "react";
 import axios from "axios";
 
 interface Material {
-  id: number | null;
+  id: string | number | null;
   name: string;
   category: string;
   thickness: number;
@@ -26,12 +26,79 @@ const initialMaterial: Material = {
   material_type: ""
 };
 
+interface MaterialRowProps {
+  material: Material;
+  onEdit: (material: Material) => void;
+  onDelete: (id: string | number) => void;
+}
+
+const MaterialRow: React.FC<MaterialRowProps> = ({ material, onEdit, onDelete }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempMaterial, setTempMaterial] = useState(material);
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setTempMaterial({ ...tempMaterial, [name]: value });
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    setIsEditing(false);
+    onEdit(tempMaterial);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setTempMaterial(material);
+  };
+
+  if (isEditing) {
+    return (
+      <tr>
+        {Object.keys(tempMaterial).map((key) => (
+          key !== "id" && (
+            <td key={key}>
+              <input
+                type="text"
+                name={key}
+                value={tempMaterial[key as keyof Material] as string}
+                onChange={handleInputChange}
+              />
+            </td>
+          )
+        ))}
+        <td>
+          <button onClick={handleSave}>保存</button>
+          <button onClick={handleCancel}>キャンセル</button>
+        </td>
+      </tr>
+    );
+  } else {
+    return (
+      <tr>
+        {Object.keys(material).map((key) => (
+          key !== "id" && (
+            <td key={key}>{material[key as keyof Material]}</td>
+          )
+        ))}
+        <td>
+          <button onClick={handleEdit}>編集</button>
+          <button onClick={() => {
+            if(material.id !== null) onDelete(material.id)
+          }}>削除
+          </button>
+        </td>
+      </tr>
+    );
+  }
+};
 
 const MaterialAPIFetch: React.FC = () => {
-
-  const [materials, setMaterials] = useState<Material[]>([initialMaterial]); // APIから取得したMaterialデータの配列
-  const [editedMaterial, setEditedMaterial] = useState<Material>(initialMaterial); // 編集中のMaterial
-  const [error, setError] = useState<string | null>(null); // エラーが発生した場合のエラーメッセージ
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [newMaterialId, setNewMaterialId] = useState(1);
 
   useEffect(() => {
     axios.get("http://localhost:8000/materials")
@@ -44,43 +111,9 @@ const MaterialAPIFetch: React.FC = () => {
       });
   }, []);
 
-  const newMaterial = (material: Material) => {
-    let data = { ...material };
-    const { id, ...dataWithoutId } = data;
-    axios.post("http://localhost:8000/materials", dataWithoutId)
-      .then(response => {
-        setMaterials([...materials, response.data]);
-        console.log("データの保存に成功しました。");
-      })
-      .catch(error => {
-        console.log("データの保存に失敗しました。");
-      });
-  };
-  ;
-
-  const editMaterial = (material: Material) => {
-    axios.put(`http://localhost:8000/materials/${material.id}`, material)
-      .then(response => {
-        setMaterials(materials.map(material => (
-          material.id === response.data.id ? response.data : material
-        )));
-        console.log("データの更新に成功しました。");
-        setEditedMaterial(initialMaterial);
-      })
-      .catch(error => {
-        console.log("データの更新に失敗しました。");
-      });
-  };
-
-  const deleteMaterial = (id: number) => {
-    axios.delete(`http://localhost:8000/materials/${id}`)
-      .then(response => {
-        setMaterials(materials.filter(material => material.id !== id));
-        console.log("データの削除に成功しました。");
-      })
-      .catch(error => {
-        console.log("データの削除に失敗しました。");
-      });
+  const handleNewButtonClick = () => {
+    setMaterials([...materials, { ...initialMaterial, id: `new-${newMaterialId}` }]);
+    setNewMaterialId(newMaterialId + 1);
   };
 
   const handleInputChange = () => (event: ChangeEvent<HTMLInputElement>) => {
@@ -88,71 +121,33 @@ const MaterialAPIFetch: React.FC = () => {
     setEditedMaterial({ ...editedMaterial, [name]: value });
   };
 
+  const handleDelete = (id: string | number) => {
+    if (typeof id === "string" && id.startsWith("new-")) {
+      setMaterials(materials.filter(material => material.id !== id));
+    } else {
+      axios.delete(`http://localhost:8000/materials/${id}`)
+        .then(() => {
+          setMaterials(materials.filter(material => material.id !== id));
+        });
+    }
+  };
 
   return (
-    <table>
-      <thead>
-      {/* ヘッダーの描画 */}
-      <tr>
-        <th>材料名</th>
-        <th>分類名</th>
-        <th>板厚</th>
-        <th>銅箔厚</th>
-        <th>size_x</th>
-        <th>size_y</th>
-        <th>メーカー名</th>
-        <th>材質</th>
-      </tr>
-      </thead>
-      <tbody>
-      { /* 既存Materialの描画 */
-        materials.map(material => (
-          <tr key={material.id}>
-            <td>{material.name}</td>
-            <td>{material.category}</td>
-            <td>{material.thickness}</td>
-            <td>{material.copper_thickness}</td>
-            <td>{material.size_x}</td>
-            <td>{material.size_y}</td>
-            <td>{material.maker}</td>
-            <td>{material.material_type}</td>
-
-            <button type="button" onClick={() => setEditedMaterial(material)}>
-              <i className="fas fa-pen"></i>
-            </button>
-            <button type="button" onClick={() => material.id !== null && deleteMaterial(material.id)}>
-              <i className="fas fa-trash-alt"></i>
-            </button>
-          </tr>))
-      }
-      </tbody>
-      <td><input type="text" name="name" value={editedMaterial.name}
-                 onChange={handleInputChange()} placeholder="材質名" required /></td>
-      <td><input type="text" name="category" value={editedMaterial.category}
-                 onChange={handleInputChange()} placeholder="分類名" required /></td>
-      <td><input type="number" name="thickness" value={editedMaterial.thickness}
-                 onChange={handleInputChange()} placeholder="板厚" required /></td>
-      <td><input type="number" name="copper_thickness" value={editedMaterial.copper_thickness}
-                 onChange={handleInputChange()} placeholder="銅箔厚"
-                 required /></td>
-      <td><input type="number" name="size_x" value={editedMaterial.size_x}
-                 onChange={handleInputChange()} placeholder="size_X" required /></td>
-      <td><input type="number" name="size_y" value={editedMaterial.size_y}
-                 onChange={handleInputChange()} placeholder="size_Y" required /></td>
-      <td><input type="text" name="maker" value={editedMaterial.maker}
-                 onChange={handleInputChange()} placeholder="メーカー名" required /></td>
-      <td><input type="text" name="material_type" value={editedMaterial.material_type}
-                 onChange={handleInputChange()} placeholder="材質" required /></td>
-
-      {editedMaterial.id !== null ?
-        <button type="button" onClick={() => editMaterial(editedMaterial)}>Update</button> :
-        <button type="button" onClick={() => newMaterial(editedMaterial)}>Create</button>
-      }
-      {/*  <i className="fas fa-trash-alt"></i>*/}
-      {/*</button>*/}
-
-
-    </table>
+    <div>
+      <button onClick={handleNewButtonClick}>新規作成</button>
+      <table>
+        <tbody>
+        {materials.map((material) => (
+          <MaterialRow
+            key={material.id}
+            material={material}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
