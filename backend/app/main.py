@@ -20,6 +20,6 @@ app.add_middleware(
 app.include_router(materials.router)
 app.include_router(inventories.router)
 
-@app.on_event("startup")
-async def startup_event():
-    insert_test_data()
+# @app.on_event("startup")
+# async def startup_event():
+#     insert_test_data()

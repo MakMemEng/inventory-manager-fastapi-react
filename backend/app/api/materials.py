@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
-from api import crud
+from api import crud, validation
 import models  # SQLAlchemyのモデル
 import schemas  # Pydanticモデル
 
@@ -24,7 +24,17 @@ def insert_test_data():
 
     try:
         # テストデータを作成
-        test_material = models.Material(
+        test_material1 = models.Material(
+            name="A1050",
+            category="AI",
+            thickness=0.8,
+            copper_thickness=0,
+            size_x=510,
+            size_y=340,
+            maker='Y機材',
+            material_type='アルミ板'
+        )
+        test_material2 = models.Material(
             name="AC-7004",
             category="片面アルミ",
             thickness=1.0,
@@ -36,7 +46,7 @@ def insert_test_data():
         )
 
         # テストデータをデータベースに追加
-        session.add(test_material)
+        session.add(test_material1, test_material2)
 
         # 変更をコミット（データベースに保存）
         session.commit()
@@ -54,11 +64,14 @@ def insert_test_data():
 @router.post("/materials", response_model=schemas.Material)
 async def create_material(material: schemas.MaterialCreate,
                           db: Session = Depends(get_db)):
-    # 入力はMaterialBase
-    db_material = crud.create_material(db=db, **material.dict())  #
-    if db_material:
+    db_same_material = validation.get_material_by_details(
+        db=db, material=material)
+    if db_same_material:
         raise HTTPException(status_code=400, detail="既に登録済みの材料です")
-    # SQLAlchemyモデルのインスタンスを作成
+    try:
+        db_material = crud.create_material(db=db, material=material)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return db_material
 
 
@@ -80,11 +93,14 @@ def read_material(material_id: int, db: Session = Depends(get_db)):
 @router.put("/materials/{material_id}", response_model=schemas.Material)
 def update_material(material_id: int, material: schemas.MaterialBase,
                     db: Session = Depends(get_db)):  # 入力はMaterialBase
-    db_material = crud.get_material(db=db, material_id=material_id)
-    if db_material is None:
-        raise HTTPException(status_code=404, detail="Material not found")
-    for key, value in material.dict().items():
-        setattr(db_material, key, value)  # フィールドを更新
+    try:
+        db_material = crud.get_material(db=db, material_id=material_id)
+        if db_material is None:
+            raise HTTPException(status_code=404, detail="Material not found")
+        for key, value in material.dict().items():
+            setattr(db_material, key, value)  # フィールドを更新
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     db.commit()
     db.refresh(db_material)
     return db_material
