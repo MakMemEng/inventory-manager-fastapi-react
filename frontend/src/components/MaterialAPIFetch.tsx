@@ -104,10 +104,6 @@ const MaterialAPIFetch: React.FC = () => {
     axios.get("http://localhost:8000/materials")
       .then(response => {
         setMaterials(response.data);
-        console.log("データの取得に成功しました。");
-      })
-      .catch(error => {
-        console.log("データの取得に失敗しました。");
       });
   }, []);
 
@@ -116,9 +112,24 @@ const MaterialAPIFetch: React.FC = () => {
     setNewMaterialId(newMaterialId + 1);
   };
 
-  const handleInputChange = () => (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setEditedMaterial({ ...editedMaterial, [name]: value });
+  const handleEdit = (updatedMaterial: Material) => {
+    if (typeof updatedMaterial.id === "string" && updatedMaterial.id.startsWith("new-")) {
+      axios.post("http://localhost:8000/materials", updatedMaterial)
+        .then(response => {
+          const newMaterial = response.data;
+          setMaterials(materials.map(material =>
+            material.id === updatedMaterial.id ? newMaterial : material
+          ));
+        });
+    } else {
+      axios.put(`http://localhost:8000/materials/${updatedMaterial.id}`, updatedMaterial)
+        .then(response => {
+          const updatedMaterialFromServer = response.data;
+          setMaterials(materials.map(material =>
+            material.id === updatedMaterialFromServer.id ? updatedMaterialFromServer : material
+          ));
+        });
+    }
   };
 
   const handleDelete = (id: string | number) => {
