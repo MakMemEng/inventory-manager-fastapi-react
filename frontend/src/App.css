@@ -1,0 +1,16 @@
+table {
+  width: 100%;
+  border-spacing: 0;
+  table-layout: fixed;
+  border-left: solid 1px #444;
+  border-right: solid 1px #444;
+}
+table thead {
+  text-align: left;
+}
+table tr,
+table td {
+  border-bottom: solid 1px #444;
+  padding: 5px 0;
+  line-height: 1.5;
+}/*# sourceMappingURL=App.css.map */
