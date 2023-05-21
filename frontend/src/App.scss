@@ -1,18 +1,17 @@
-.App {
-  text-align: center;
-}
+table {
+  width: 100%;
+  border-spacing: 0;
+  table-layout: fixed;
+  border-left: solid 1px #444;
+  border-right: solid 1px #444;
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
+  thead {
+    text-align: left;
+  }
+  tr,
+  td {
+    border-bottom: solid 1px #444;
+    padding: 5px 0;
+    line-height: 1.5;
+  }
 }

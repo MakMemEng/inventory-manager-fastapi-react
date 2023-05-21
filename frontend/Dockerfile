@@ -14,7 +14,7 @@ RUN npm install
 COPY .. .
 
 # ポートのエクスポート
-EXPOSE 3000
+EXPOSE 5173
 
 # 実行コマンド
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev", "--",  "--host"]
